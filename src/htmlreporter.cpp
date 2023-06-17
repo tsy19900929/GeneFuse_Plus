@@ -124,12 +124,12 @@ void HtmlReporter::printFusion(int id, FusionResult& fusion){
 
 void HtmlReporter::printHeader(){
     mFile << "<html><head><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\" />";
-    mFile << "<title>GeneFuse " << FUSIONSCAN_VER << ", at " << getCurrentSystemTime() << "</title>";
+    //mFile << "<title>GeneFuse " << FUSIONSCAN_VER << ", at " << getCurrentSystemTime() << "</title>";
     printJS();
     printCSS();
     mFile << "</head>";
     mFile << "<body><div id='container'>";
-    mFile << "<div class='software'> <a href='https://github.com/OpenGene/GeneFuse' style='text-decoration:none;' target='_blank'>GeneFuse</a> <font size='-1'>" << FUSIONSCAN_VER << "</font></div>";
+    //mFile << "<div class='software'> <a href='https://github.com/OpenGene/GeneFuse' style='text-decoration:none;' target='_blank'>GeneFuse</a> <font size='-1'>" << FUSIONSCAN_VER << "</font></div>";
 }
 
 void HtmlReporter::printCSS(){
@@ -195,9 +195,9 @@ extern string command;
 
 void HtmlReporter::printFooter(){
     mFile << "<div id='footer'> ";
-    mFile << "<p>"<<command<<"</p>";
+    //mFile << "<p>"<<command<<"</p>";
     printScanTargets();
-    mFile << "GeneFuse " << FUSIONSCAN_VER << ", at " << getCurrentSystemTime() << " </div>";
+    //mFile << "GeneFuse " << FUSIONSCAN_VER << ", at " << getCurrentSystemTime() << " </div>";
     mFile << "</div></body></html>";
 }
 

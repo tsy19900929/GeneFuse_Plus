@@ -42,8 +42,8 @@ public:
     ~PairEndScanner();
     bool scan();
     void textReport();
-    void htmlReport();
-    void jsonReport();
+    void htmlReport(FusionMapper* mFusionMapper);
+    void jsonReport(FusionMapper* mFusionMapper);
 
 private:
     bool scanPairEnd(ReadPairPack* pack);
@@ -53,7 +53,7 @@ private:
     void consumePack();
     void producerTask();
     void consumerTask();
-    void pushMatch(Match* m);
+    void pushMatch(Match* m, FusionMapper* mFusionMapper);
 
 private:
     string mFusionFile;
@@ -66,7 +66,8 @@ private:
     bool mProduceFinished;
     std::mutex mFusionMtx;
     int mThreadNum;
-    FusionMapper* mFusionMapper;
+    //FusionMapper* mFusionMapper;
+    vector<FusionMapper *> mFusionMapperV;
 };
 
 

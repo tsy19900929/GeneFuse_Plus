@@ -18,19 +18,29 @@ PairEndScanner::PairEndScanner(string fusionFile, string refFile, string read1Fi
     mJsonFile = json;
     mProduceFinished = false;
     mThreadNum = threadNum;
-    mFusionMapper = NULL;
 }
 
 PairEndScanner::~PairEndScanner() {
-    if(mFusionMapper != NULL) {
-        delete mFusionMapper;
-        mFusionMapper = NULL;
+    for(vector<FusionMapper *>::iterator it = mFusionMapperV.begin(); it != mFusionMapperV.end(); it++){
+        FusionMapper* mFusionMapper = *it;
+        if(mFusionMapper != NULL) {
+            delete mFusionMapper;
+            mFusionMapper = NULL;
+        }
     }
+    mFusionMapperV.clear();
 }
 
 bool PairEndScanner::scan(){
 
-    mFusionMapper = new FusionMapper(mRefFile, mFusionFile);
+    ifstream file;
+    file.open(mFusionFile.c_str(), ifstream::in);
+    const int maxLine = 4096;
+    char line[maxLine];
+    while(file.getline(line, maxLine)){
+        FusionMapper* mFusionMapper = new FusionMapper(mRefFile, line);
+        mFusionMapperV.push_back(mFusionMapper);
+    }
 
     initPackRepository();
     std::thread producer(std::bind(&PairEndScanner::producerTask, this));
@@ -50,18 +60,39 @@ bool PairEndScanner::scan(){
         threads[t] = NULL;
     }
 
-    mFusionMapper->filterMatches();
-    mFusionMapper->sortMatches();
-    mFusionMapper->clusterMatches();
+    int part = 0;
+    string suf;
+    string bakHtml = mHtmlFile;
+    int pos = bakHtml.find(".html");
+    if(pos >= 0)
+        bakHtml.replace(pos, 5, "");
+    string bakJson = mJsonFile;
+    
+    for(vector<FusionMapper *>::iterator it = mFusionMapperV.begin(); it != mFusionMapperV.end(); it++){
+        FusionMapper* mFusionMapper = *it;
+    
+        part += 1;
+        suf = "_" + to_string(part);
+        cerr << ">>> " + suf << endl;
+        if(bakHtml != "")
+            mHtmlFile = bakHtml + suf + ".html";
+        if(bakJson != "")
+            mJsonFile = bakJson + suf;
+   
+        mFusionMapper->filterMatches();
+        mFusionMapper->sortMatches();
+        mFusionMapper->clusterMatches();
 
-    htmlReport();
-    jsonReport();
+        htmlReport(mFusionMapper);
+        jsonReport(mFusionMapper);
 
-    mFusionMapper->freeMatches();
+        mFusionMapper->freeMatches();
+    
+    }
     return true;
 }
 
-void PairEndScanner::pushMatch(Match* m){
+void PairEndScanner::pushMatch(Match* m, FusionMapper* mFusionMapper){
     std::unique_lock<std::mutex> lock(mFusionMtx);
     mFusionMapper->addMatch(m);
     lock.unlock();
@@ -76,58 +107,62 @@ bool PairEndScanner::scanPairEnd(ReadPairPack* pack){
         Read* rcr2 = NULL;
         Read* merged = pair->fastMerge();
         Read* mergedRC = NULL;
-        bool mapable = false;
-        // if merged successfully, we only search the merged
-        if(merged != NULL) {
-            Match* matchMerged = mFusionMapper->mapRead(merged, mapable);
-            if(matchMerged){
-                matchMerged->addOriginalPair(pair);
-                pushMatch(matchMerged);
-            } else if(mapable){
-                mergedRC = merged->reverseComplement();
-                Match* matchMergedRC = mFusionMapper->mapRead(mergedRC, mapable);
-                if(matchMergedRC){
-                    matchMergedRC->addOriginalPair(pair);
-                    pushMatch(matchMergedRC);
-                }
-                delete mergedRC;
-            }
 
-            delete pair;
-            delete merged;
-            continue;
-        }
-        // else still search R1 and R2 separatedly
-        mapable = false;
-        Match* matchR1 = mFusionMapper->mapRead(r1, mapable);
-        if(matchR1){
-            matchR1->addOriginalPair(pair);
-            pushMatch(matchR1);
-        } else if(mapable){
-            rcr1 = r1->reverseComplement();
-            Match* matchRcr1 = mFusionMapper->mapRead(rcr1, mapable);
-            if(matchRcr1){
-                matchRcr1->addOriginalPair(pair);
-                matchRcr1->setReversed(true);
-                pushMatch(matchRcr1);
+        for(vector<FusionMapper *>::iterator it = mFusionMapperV.begin(); it != mFusionMapperV.end(); it++){
+            FusionMapper* mFusionMapper = *it;
+            bool mapable = false;
+            // if merged successfully, we only search the merged
+            if(merged != NULL) {
+                Match* matchMerged = mFusionMapper->mapRead(merged, mapable);
+                if(matchMerged){
+                    matchMerged->addOriginalPair(pair);
+                    pushMatch(matchMerged, mFusionMapper);
+                } else if(mapable){
+                    mergedRC = merged->reverseComplement();
+                    Match* matchMergedRC = mFusionMapper->mapRead(mergedRC, mapable);
+                    if(matchMergedRC){
+                        matchMergedRC->addOriginalPair(pair);
+                        pushMatch(matchMergedRC, mFusionMapper);
+                    }
+                }
+
+                continue;
             }
-            delete rcr1;
-        }
-        mapable = false;
-        Match* matchR2 = mFusionMapper->mapRead(r2, mapable);
-        if(matchR2){
-            matchR2->addOriginalPair(pair);
-            pushMatch(matchR2);
-        } else if(mapable) {
-            rcr2 = r2->reverseComplement();
-            Match* matchRcr2 = mFusionMapper->mapRead(rcr2, mapable);
-            if(matchRcr2){
-                matchRcr2->addOriginalPair(pair);
-                matchRcr2->setReversed(true);
-                pushMatch(matchRcr2);
+            // else still search R1 and R2 separatedly
+            mapable = false;
+            Match* matchR1 = mFusionMapper->mapRead(r1, mapable);
+            if(matchR1){
+                matchR1->addOriginalPair(pair);
+                pushMatch(matchR1, mFusionMapper);
+            } else if(mapable){
+                rcr1 = r1->reverseComplement();
+                Match* matchRcr1 = mFusionMapper->mapRead(rcr1, mapable);
+                if(matchRcr1){
+                    matchRcr1->addOriginalPair(pair);
+                    matchRcr1->setReversed(true);
+                    pushMatch(matchRcr1, mFusionMapper);
+                }
             }
-            delete rcr2;
+            mapable = false;
+            Match* matchR2 = mFusionMapper->mapRead(r2, mapable);
+            if(matchR2){
+                matchR2->addOriginalPair(pair);
+                pushMatch(matchR2, mFusionMapper);
+            } else if(mapable) {
+                rcr2 = r2->reverseComplement();
+                Match* matchRcr2 = mFusionMapper->mapRead(rcr2, mapable);
+                if(matchRcr2){
+                    matchRcr2->addOriginalPair(pair);
+                    matchRcr2->setReversed(true);
+                    pushMatch(matchRcr2, mFusionMapper);
+                }
+            }
         }
+
+        delete mergedRC;
+        delete merged;
+        delete rcr1;
+        delete rcr2;
         delete pair;
     }
 
@@ -262,7 +297,7 @@ void PairEndScanner::consumerTask()
 void PairEndScanner::textReport() {
 }
 
-void PairEndScanner::htmlReport() {
+void PairEndScanner::htmlReport(FusionMapper* mFusionMapper) {
     if(mHtmlFile == "")
         return;
 
@@ -270,7 +305,7 @@ void PairEndScanner::htmlReport() {
     reporter.run();
 }
 
-void PairEndScanner::jsonReport() {
+void PairEndScanner::jsonReport(FusionMapper* mFusionMapper) {
     if(mJsonFile == "")
         return;
 
