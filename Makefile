@@ -6,7 +6,7 @@ BINDIR=/usr/local/bin
 SRC = $(wildcard ${DIR_SRC}/*.cpp)  
 OBJ = $(patsubst %.cpp,${DIR_OBJ}/%.o,$(notdir ${SRC})) 
 
-TARGET = genefuse
+TARGET = genefuse_plus
 
 BIN_TARGET = ${TARGET}
 
