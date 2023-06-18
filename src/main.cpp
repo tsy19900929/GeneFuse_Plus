@@ -18,11 +18,11 @@ int main(int argc, char* argv[]){
     }
     cmdline::parser cmd;
     cmd.add<string>("read1", '1', "read1 file name", true, "");
-    cmd.add<string>("read2", '2', "read2 file name", false, "");
-    cmd.add<string>("fusion", 'f', "fusion file name, in CSV format", true, "");
+    cmd.add<string>("read2", '2', "read2 file name", true, "");
+    cmd.add<string>("fusion", 'f', "list of csv files", true, "");
     cmd.add<string>("ref", 'r', "reference fasta file name", true, "");
     cmd.add<int>("unique", 'u', "specify the least supporting read number is required to report a fusion, default is 2", false, 2);
-    cmd.add<string>("html", 'h', "file name to store HTML report, default is genefuse.html", false, "genefuse.html");
+    cmd.add<string>("html", 'h', "file name to store HTML report; 1th csv file -> _1.html, 2nd csv file -> _2.html ... ", false, "genefuse.html");
     cmd.add<string>("json", 'j', "file name to store JSON report, default is genefuse.json", false, "genefuse.json");
     cmd.add<int>("thread", 't', "worker thread number, default is 4", false, 4);
     cmd.add<int>("deletion", 'd', "specify the least deletion length of a intra-gene deletion to report, default is 50", false, 50);
