@@ -24,7 +24,7 @@ int main(int argc, char* argv[]){
     cmd.add<int>("unique", 'u', "specify the least supporting read number is required to report a fusion, default is 2", false, 2);
     cmd.add<string>("html", 'h', "file name to store HTML report; 1th csv file -> _1.html, 2nd csv file -> _2.html ... ", false, "genefuse.html");
     cmd.add<string>("json", 'j', "file name to store JSON report, default is genefuse.json", false, "genefuse.json");
-    cmd.add<int>("thread", 't', "worker thread number, default is 4", false, 4);
+    cmd.add<int>("thread", 't', "worker thread number, default is 8", false, 8);
     cmd.add<int>("deletion", 'd', "specify the least deletion length of a intra-gene deletion to report, default is 50", false, 50);
     cmd.add("output_deletions", 'D', "long deletions are not output by default, enable this option to output them");
     cmd.add("output_untranslated_fusions", 'U', "the fusions that cannot be transcribed or translated are not output by default, enable this option to output them");
