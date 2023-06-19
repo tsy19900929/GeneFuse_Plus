@@ -41,19 +41,13 @@ public:
     PairEndScanner(string fusionFile, string refFile, string read1File, string read2File, string html, string json, int threadnum);
     ~PairEndScanner();
     bool scan();
-    void textReport();
     void htmlReport(FusionMapper* mFusionMapper);
     void jsonReport(FusionMapper* mFusionMapper);
 
 private:
-    bool scanPairEnd(ReadPairPack* pack);
-    void initPackRepository();
-    void destroyPackRepository();
-    void producePack(ReadPairPack* pack);
-    void consumePack();
-    void producerTask();
-    void consumerTask();
+    bool scanPairEnd(vector<ReadPair *> pack, FusionMapper* mFusionMapper);
     void pushMatch(Match* m, FusionMapper* mFusionMapper);
+    void scanPairEndWrapper(vector<ReadPair *> pack, FusionMapper* mFusionMapper);
 
 private:
     string mFusionFile;
@@ -62,13 +56,13 @@ private:
     string mRead2File;
     string mHtmlFile;
     string mJsonFile;
-    ReadPairRepository mRepo;
-    bool mProduceFinished;
     std::mutex mFusionMtx;
     int mThreadNum;
-    //FusionMapper* mFusionMapper;
     vector<FusionMapper *> mFusionMapperV;
+    vector<ReadPair *> ReadPairV;
+    mutex mtx;
+    condition_variable condition;
+    int process_number;
 };
-
 
 #endif
