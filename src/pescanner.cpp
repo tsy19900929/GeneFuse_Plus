@@ -65,13 +65,12 @@ bool PairEndScanner::scan(){
     file.open(mFusionFile.c_str(), ifstream::in);
     const int maxLine = 4096;
     char line[maxLine];
-
     FusionMapper* mFusionMapper;
     vector<ReadPair *> pack; 
     vector<vector<ReadPair *>> packV;
     vector<thread> th_set;
-    while(file.getline(line, maxLine)){
 
+    while(file.getline(line, maxLine)){
         csv++;
         suf = "_" + to_string(csv);
         cerr << ">>> " << suf << endl; 
@@ -83,29 +82,26 @@ bool PairEndScanner::scan(){
         mFusionMapper = new FusionMapper(mRefFile, line);
         int j = 0;
         for(int i = 0; i < count; i++) {
+            pack.push_back(ReadPairV[i]);
 
-                pack.push_back(ReadPairV[i]);
+            if ((i + 1) % PACK_SIZE == 0 || (i + 1) == count){
+                packV.push_back(pack);
+                pack.clear();
 
-                if ((i + 1) % PACK_SIZE == 0 || (i + 1) == count){
-                    packV.push_back(pack);
-                    pack.clear();
-                    th_set.push_back(thread(&PairEndScanner::scanPairEndWrapper, this, packV[j], mFusionMapper));
-                    j++;
-                }
-                if ((i + 1) % (PACK_SIZE * mThreadNum * 4) == 0 || (i + 1) == count){
-                    for(auto &th : th_set)
-                            th.join();
+                th_set.push_back(thread(&PairEndScanner::scanPairEndWrapper, this, packV[j], mFusionMapper));
+                j++;
+            }
+            if ((i + 1) % (PACK_SIZE * mThreadNum * 4) == 0 || (i + 1) == count){
+                for(auto &th : th_set)
+                    th.join();
+                th_set.clear();
+                process_number = 0;
 
-                    th_set.clear();
-                    process_number = 0;
-
-                    packV.clear();
-                    j = 0;
-                }
-
-                if ((i + 1) % 1000000 == 0)
-                    cerr << "^^^ parse 1M pairs" <<endl;
-
+                packV.clear();
+                j = 0;
+            }
+            if ((i + 1) % 1000000 == 0)
+                cerr << "^^^ parse 1M pairs" <<endl;
         }
 
         mFusionMapper->filterMatches();
