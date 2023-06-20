@@ -25,9 +25,9 @@ PairEndScanner::~PairEndScanner() {
 }
 
 void PairEndScanner::scanPairEndWrapper(vector<ReadPair* >pack, FusionMapper* mFusionMapper){
-    if(process_number > mThreadNum){
+    if(process_number >= mThreadNum){
         unique_lock<mutex> lock(mtx);
-        while (process_number > mThreadNum)
+        while (process_number >= mThreadNum)
             condition.wait(lock);
     }
     process_number += 1;
