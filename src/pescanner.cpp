@@ -8,6 +8,7 @@
 #include <memory.h>
 #include "util.h"
 #include "jsonreporter.h"
+#define PACK_SIZE 1024
 
 PairEndScanner::PairEndScanner(string fusionFile, string refFile, string read1File, string read2File, string html, string json, int threadNum){
     mRead1File = read1File;
@@ -85,18 +86,19 @@ bool PairEndScanner::scan(){
 
                 pack.push_back(ReadPairV[i]);
 
-                if ((i + 1) % 1024 == 0 || (i + 1) == count){
+                if ((i + 1) % PACK_SIZE == 0 || (i + 1) == count){
                     packV.push_back(pack);
                     pack.clear();
                     th_set.push_back(thread(&PairEndScanner::scanPairEndWrapper, this, packV[j], mFusionMapper));
                     j++;
                 }
-                if ((i + 1) % (1024 * 128) == 0 || (i + 1) == count){
-                    for(auto &th : th_set){
+                if ((i + 1) % (PACK_SIZE * mThreadNum * 4) == 0 || (i + 1) == count){
+                    for(auto &th : th_set)
                             th.join();
-                    }
+
                     th_set.clear();
                     process_number = 0;
+
                     packV.clear();
                     j = 0;
                 }
