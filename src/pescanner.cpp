@@ -24,19 +24,18 @@ PairEndScanner::PairEndScanner(string fusionFile, string refFile, string read1Fi
 PairEndScanner::~PairEndScanner() {
 }
 
-void PairEndScanner::scanPairEndWrapper(vector<ReadPair* >pack, FusionMapper* mFusionMapper) {
-    if(process_number > mThreadNum) {
+void PairEndScanner::scanPairEndWrapper(vector<ReadPair* >pack, FusionMapper* mFusionMapper){
+    if(process_number > mThreadNum){
         unique_lock<mutex> lock(mtx);
-            while (process_number > mThreadNum) {
-                condition.wait(lock);
-            }
-        }
-        process_number += 1;
+        while (process_number > mThreadNum)
+            condition.wait(lock);
+    }
+    process_number += 1;
 
-        scanPairEnd(pack, mFusionMapper);
+    scanPairEnd(pack, mFusionMapper);
 
-        process_number -= 1;
-        condition.notify_one();
+    process_number -= 1;
+    condition.notify_one();
 }
 
 bool PairEndScanner::scan(){
@@ -45,9 +44,8 @@ bool PairEndScanner::scan(){
     int count = 0;
     while(true){
         ReadPair* read = reader.read();
-        if(!read){
+        if(!read)
             break;
-        }
         ReadPairV.push_back(read);
         count++;
     }
