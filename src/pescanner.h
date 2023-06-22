@@ -46,8 +46,8 @@ public:
 
 private:
     bool scanPairEnd(vector<ReadPair *> pack, FusionMapper* mFusionMapper);
-    void pushMatch(Match* m, FusionMapper* mFusionMapper);
     void scanPairEndWrapper(vector<ReadPair *> pack, FusionMapper* mFusionMapper);
+    void pushMatch(Match* m, FusionMapper* mFusionMapper);
 
 private:
     string mFusionFile;
@@ -56,13 +56,14 @@ private:
     string mRead2File;
     string mHtmlFile;
     string mJsonFile;
-    std::mutex mFusionMtx;
+    mutex mFusionMtx;
+    mutex waitMtx;
+    mutex processMtx;
     int mThreadNum;
+    int process_number;
     vector<FusionMapper *> mFusionMapperV;
     vector<ReadPair *> ReadPairV;
-    mutex mtx;
     condition_variable condition;
-    int process_number;
 };
 
 #endif
