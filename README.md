@@ -1,6 +1,6 @@
 # GeneFuse_Plus
-  * thanks to GeneFuse 0.8.0
-  * more aggressive for high positive rate
+  * identical to output from GeneFuse 0.8.0
+  * more flexible for high positive rate
   * [fix stuck from multi thread lock](https://github.com/OpenGene/GeneFuse/issues/30)
 
 
