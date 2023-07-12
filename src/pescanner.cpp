@@ -8,7 +8,7 @@
 #include <memory.h>
 #include "util.h"
 #include "jsonreporter.h"
-#define PACK_SIZE 1024
+#define PACK_SIZE 100000
 
 PairEndScanner::PairEndScanner(string fusionFile, string refFile, string read1File, string read2File, string html, string json, int threadNum){
     mRead1File = read1File;
@@ -52,7 +52,7 @@ bool PairEndScanner::scan(){
         ReadPair* read = reader.read();
         if(!read)
             break;
-        ReadPairV.push_back(read);
+        ReadPairV.emplace_back(read);
         count++;
     }
     cerr << "!!! load " << count << " readpairs" << endl;
@@ -116,6 +116,7 @@ bool PairEndScanner::scan(){
         jsonReport(mFusionMapper);
 
         mFusionMapper->freeMatches();
+        delete mFusionMapper;
     }
     return true;
 }
