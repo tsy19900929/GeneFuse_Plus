@@ -8,3 +8,7 @@
   -f, &emsp; list of csv files (string) [e.g.](https://raw.githubusercontent.com/tsy19900929/GeneFuse_Plus/master/csv.list)      
   -h, &emsp;file name to store HTML report; 1st csv file -> _1.html, 2nd csv file -> _2.html ...  (string [=genefuse.html])  
   -t, &emsp; worker thread number, default is 8 (int [=8])
+
+# Issue
+  `"version GLIBC_2.33 not found"`    
+  [download source code then `make`] or [google] 
